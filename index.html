@@ -387,6 +387,7 @@
 <!-- BACKGROUND VIDEO -->
 <div class="bg-video-wrap">
   <video autoplay muted loop playsinline webkit-playsinline preload="auto">
+    <source src="bg.mp4%20(1).mp4" type="video/mp4" media="(max-width: 600px)">
     <source src="bg.mp4.mp4" type="video/mp4">
   </video>
 </div>
@@ -574,6 +575,29 @@
 </main>
 
 <script>
+  // Background video autoplay fallback for mobile browsers
+  const bgVideo = document.querySelector('.bg-video-wrap video');
+  if (bgVideo) {
+    bgVideo.muted = true;
+    bgVideo.playsInline = true;
+    bgVideo.setAttribute('muted', '');
+    bgVideo.setAttribute('playsinline', '');
+    bgVideo.setAttribute('webkit-playsinline', '');
+
+    const tryPlayVideo = () => {
+      const playPromise = bgVideo.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {});
+      }
+    };
+
+    window.addEventListener('load', tryPlayVideo, { once: true });
+    window.addEventListener('touchstart', tryPlayVideo, { once: true, passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) tryPlayVideo();
+    });
+  }
+
   // Custom cursor reticle
   const reticle = document.getElementById('reticle');
   document.addEventListener('mousemove', e => {
