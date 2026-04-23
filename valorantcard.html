@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VALORANT // PLAYER CARD</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red:    #FF4655;
+    --red2:   #BD3944;
+    --dark:   #0F1923;
+    --darker: #070C12;
+    --mid:    #1A2634;
+    --white:  #ECE8E1;
+    --gray:   #768079;
+    --teal:   #00E4C8;
+    --gold:   #F0B232;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--darker);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── PARTICLE CANVAS ── */
+  canvas#particles {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── SCANLINES ── */
+  .scan {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 3px,
+      rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px
+    );
+  }
+
+  /* ── CORNERS ── */
+  .corner { position: fixed; z-index: 5; }
+  .corner::before, .corner::after {
+    content: ''; position: absolute; background: var(--red);
+  }
+  .corner::before { width: 2px; height: 36px; }
+  .corner::after  { width: 36px; height: 2px; }
+  .c-tl { top:18px; left:18px; }
+  .c-tl::before { top:0; left:0; }
+  .c-tl::after  { top:0; left:0; }
+  .c-tr { top:18px; right:18px; transform:scaleX(-1); }
+  .c-tr::before { top:0; left:0; }
+  .c-tr::after  { top:0; left:0; }
+  .c-bl { bottom:18px; left:18px; transform:scaleY(-1); }
+  .c-bl::before { top:0; left:0; }
+  .c-bl::after  { top:0; left:0; }
+  .c-br { bottom:18px; right:18px; transform:scale(-1); }
+  .c-br::before { top:0; left:0; }
+  .c-br::after  { top:0; left:0; }
+
+  /* ── RETICLE CURSOR ── */
+  #reticle {
+    position: fixed; z-index: 9999; pointer-events: none;
+    width: 28px; height: 28px;
+    transform: translate(-50%,-50%);
+    transition: transform 0.12s;
+  }
+
+  /* ── TRIGGER BUTTON (initial state) ── */
+  .trigger-wrap {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+    animation: fadeIn 0.7s ease both;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  .trigger-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 5px; color: var(--gray);
+    text-transform: uppercase;
+  }
+
+  .trigger-btn {
+    position: relative;
+    display: flex; align-items: center; gap: 16px;
+    padding: 22px 48px;
+    background: transparent;
+    border: none; cursor: crosshair;
+    clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+    overflow: visible;
+  }
+  .trigger-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,70,85,0.06);
+    border: 1.5px solid rgba(255,70,85,0.35);
+    clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+    transition: background 0.3s;
+  }
+  .trigger-btn:hover::before { background: rgba(255,70,85,0.14); }
+  .trigger-btn:hover .btn-icon { transform: rotate(15deg) scale(1.1); }
+  .trigger-btn:active { transform: scale(0.97); }
+
+  .btn-icon { transition: transform 0.3s; }
+  .btn-text {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px; font-weight: 600;
+    letter-spacing: 5px; color: var(--white);
+    text-transform: uppercase;
+  }
+  .btn-text span { color: var(--red); }
+
+  .pulse-ring {
+    position: absolute; inset: -8px;
+    border: 1px solid rgba(255,70,85,0.3);
+    clip-path: polygon(20px 0%, 100% 0%, calc(100% - 20px) 100%, 0% 100%);
+    animation: pulseRing 2s infinite;
+  }
+  @keyframes pulseRing {
+    0%   { opacity:0.6; transform:scale(1); }
+    100% { opacity:0;   transform:scale(1.08); }
+  }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(7,12,18,0.92);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .modal-overlay.open {
+    opacity: 1; pointer-events: all;
+  }
+
+  /* ── PLAYER CARD ── */
+  .player-card {
+    position: relative;
+    width: min(520px, 92vw);
+    background: var(--dark);
+    border: 1px solid rgba(255,70,85,0.2);
+    overflow: visible;
+    transform: scale(0.85) translateY(40px);
+    transition: transform 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.45s;
+    opacity: 0;
+  }
+  .modal-overlay.open .player-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  /* angled corner cuts */
+  .player-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    clip-path: polygon(24px 0%, 100% 0%, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0% 100%, 0% 24px);
+    border: 1.5px solid rgba(255,70,85,0.25);
+    pointer-events: none;
+  }
+
+  /* red corner triangles */
+  .card-corner-tl, .card-corner-br {
+    position: absolute;
+    width: 24px; height: 24px;
+    background: var(--red);
+  }
+  .card-corner-tl {
+    top: -1px; left: -1px;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  .card-corner-br {
+    bottom: -1px; right: -1px;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  }
+
+  /* ── CARD BANNER ── */
+  .card-banner {
+    position: relative;
+    height: 180px;
+    background:
+      linear-gradient(135deg, rgba(255,70,85,0.15) 0%, transparent 60%),
+      linear-gradient(to bottom, #0F1923, #070C12);
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* big V watermark */
+  .banner-v {
+    position: absolute;
+    font-family: 'Oswald', sans-serif;
+    font-size: 220px; font-weight: 700;
+    color: rgba(255,70,85,0.05);
+    line-height: 1;
+    top: -30px; right: -10px;
+    user-select: none;
+    letter-spacing: -10px;
+  }
+
+  /* hex grid pattern */
+  .banner-hex {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(255,70,85,0.08) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.7;
+  }
+
+  /* rank badge */
+  .rank-badge {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .rank-icon {
+    width: 80px; height: 80px;
+    position: relative;
+  }
+  .rank-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 4px; color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* scan line sweep animation */
+  .banner-sweep {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(255,70,85,0.06) 50%, transparent 100%);
+    animation: sweep 3s ease-in-out infinite;
+  }
+  @keyframes sweep {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(200%); }
+  }
+
+  /* ── CARD BODY ── */
+  .card-body {
+    padding: 28px 32px 24px;
+    position: relative;
+  }
+
+  /* red left accent bar */
+  .card-body::before {
+    content: '';
+    position: absolute; left: 0; top: 28px; bottom: 24px;
+    width: 3px; background: var(--red);
+  }
+
+  .card-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 4px;
+    color: var(--red); margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-tag::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(255,70,85,0.4), transparent);
+  }
+
+  .card-username {
+    font-family: 'Oswald', sans-serif;
+    font-size: 42px; font-weight: 700;
+    color: var(--white);
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .card-username .tag {
+    color: var(--red); font-size: 28px; font-weight: 400;
+  }
+
+  .card-username::after {
+    content: attr(data-name);
+    position: absolute; left: 2px; top: 2px;
+    color: var(--red); opacity: 0.08; z-index: -1;
+  }
+
+  .card-tagline {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 500;
+    color: var(--gray); letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255,70,85,0.12);
+    margin-bottom: 28px;
+  }
+  .stat-cell {
+    background: var(--dark);
+    padding: 14px 16px;
+    text-align: center;
+    position: relative;
+  }
+  .stat-cell::after {
+    content: '';
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 0; height: 2px; background: var(--red);
+    transition: width 0.4s 0.6s;
+  }
+  .modal-overlay.open .stat-cell::after { width: 80%; }
+
+  .stat-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px; font-weight: 600;
+    color: var(--white); line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-num.gold { color: var(--gold); }
+  .stat-num.teal { color: var(--teal); }
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; color: var(--gray);
+    text-transform: uppercase;
+  }
+
+  /* ── TRACKER LINK BUTTON ── */
+  .tracker-btn {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(255,70,85,0.05);
+    border: 1px solid rgba(255,70,85,0.2);
+    text-decoration: none;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: background 0.2s, border-color 0.2s;
+    cursor: crosshair;
+    margin-bottom: 16px;
+  }
+  .tracker-btn:hover {
+    background: rgba(255,70,85,0.1);
+    border-color: rgba(255,70,85,0.5);
+  }
+  .tracker-btn-left {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .tracker-btn-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: var(--white); letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .tracker-btn-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: var(--gray); letter-spacing: 2px;
+    display: block; margin-top: 1px;
+  }
+  .tracker-arrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px; color: var(--red);
+    transition: transform 0.2s;
+  }
+  .tracker-btn:hover .tracker-arrow { transform: translateX(4px); }
+
+  /* ── CLOSE BUTTON ── */
+  .close-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--gray);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: crosshair;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .close-btn:hover { border-color: rgba(255,70,85,0.3); color: var(--red); }
+
+  /* ── CARD SERIAL ── */
+  .card-serial {
+    position: absolute; bottom: 8px; right: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; color: rgba(118,128,121,0.3); letter-spacing: 2px;
+  }
+
+  /* ── AGENT PORTRAIT (decorative right side) ── */
+  .agent-silhouette {
+    position: absolute;
+    right: 20px; top: 20px;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+
+  /* ── ANIMATED ENTRY LINES ── */
+  .entry-line {
+    position: absolute; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, var(--red), transparent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .entry-line.top    { top: 0;    transition-delay: 0.1s; }
+  .entry-line.bottom { bottom: 0; transition-delay: 0.2s; }
+  .modal-overlay.open .entry-line { transform: scaleX(1); }
+
+  /* COPY TOAST */
+  .toast {
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(255,70,85,0.15);
+    border: 1px solid rgba(255,70,85,0.4);
+    color: var(--white);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    padding: 10px 24px;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 999;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- PARTICLES -->
+<canvas id="particles"></canvas>
+<div class="scan"></div>
+
+<!-- CORNER BRACKETS -->
+<div class="corner c-tl"></div>
+<div class="corner c-tr"></div>
+<div class="corner c-bl"></div>
+<div class="corner c-br"></div>
+
+<!-- CURSOR RETICLE -->
+<svg id="reticle" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="14" cy="14" r="6" stroke="#FF4655" stroke-width="1" opacity="0.8"/>
+  <line x1="14" y1="0"  x2="14" y2="7"  stroke="#FF4655" stroke-width="1" opacity="0.8"/>
+  <line x1="14" y1="21" x2="14" y2="28" stroke="#FF4655" stroke-width="1" opacity="0.8"/>
+  <line x1="0"  y1="14" x2="7"  y2="14" stroke="#FF4655" stroke-width="1" opacity="0.8"/>
+  <line x1="21" y1="14" x2="28" y2="14" stroke="#FF4655" stroke-width="1" opacity="0.8"/>
+  <circle cx="14" cy="14" r="1.2" fill="#FF4655"/>
+</svg>
+
+<!-- ── TRIGGER BUTTON ── -->
+<div class="trigger-wrap" id="triggerWrap">
+  <span class="trigger-label">// TAP TO IDENTIFY AGENT //</span>
+  <button class="trigger-btn" id="openCard" onclick="openModal()">
+    <div class="pulse-ring"></div>
+    <svg class="btn-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M4 10L16 4L28 10V20C28 25 22 29 16 30C10 29 4 25 4 20V10Z" stroke="#FF4655" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M11 16L14.5 20L21 13" stroke="#FF4655" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="btn-text">VALORANT <span>//</span> CARD</span>
+  </button>
+  <span class="trigger-label" style="font-size:9px; letter-spacing:3px; opacity:0.5;">CLASSIFIED AGENT DATA</span>
+</div>
+
+<!-- ── MODAL OVERLAY ── -->
+<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
+
+  <div class="player-card" id="playerCard">
+
+    <!-- animated entry lines -->
+    <div class="entry-line top"></div>
+    <div class="entry-line bottom"></div>
+
+    <!-- corner triangles -->
+    <div class="card-corner-tl"></div>
+    <div class="card-corner-br"></div>
+
+    <!-- ── BANNER ── -->
+    <div class="card-banner">
+      <div class="banner-hex"></div>
+      <div class="banner-v">V</div>
+      <div class="banner-sweep"></div>
+
+      <!-- RANK SVG BADGE -->
+      <div class="rank-badge">
+        <div class="rank-icon">
+          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- outer ring -->
+            <circle cx="40" cy="40" r="38" stroke="#FF4655" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4"/>
+            <!-- middle ring -->
+            <circle cx="40" cy="40" r="30" stroke="#FF4655" stroke-width="1" opacity="0.3"/>
+            <!-- shield body -->
+            <path d="M40 10L68 22V42C68 56 55 67 40 70C25 67 12 56 12 42V22L40 10Z"
+                  fill="rgba(255,70,85,0.08)" stroke="#FF4655" stroke-width="1.8" stroke-linejoin="round"/>
+            <!-- inner diamond -->
+            <path d="M40 24L52 36L40 48L28 36Z" fill="rgba(255,70,85,0.2)" stroke="#FF4655" stroke-width="1.2"/>
+            <circle cx="40" cy="36" r="4" fill="#FF4655"/>
+            <!-- radiant crown points -->
+            <path d="M40 10L42 18H38Z" fill="#F0B232" opacity="0.9"/>
+            <path d="M68 22L61 26L63 22Z" fill="#F0B232" opacity="0.6"/>
+            <path d="M12 22L19 26L17 22Z" fill="#F0B232" opacity="0.6"/>
+            <!-- XP arcs -->
+            <path d="M20 54 Q40 72 60 54" stroke="#F0B232" stroke-width="1" fill="none" opacity="0.5"/>
+          </svg>
+        </div>
+        <span class="rank-label">// RADIANT //</span>
+      </div>
+
+      <!-- agent silhouette watermark -->
+      <svg class="agent-silhouette" width="120" height="160" viewBox="0 0 120 160" fill="none">
+        <ellipse cx="60" cy="40" rx="22" ry="22" fill="#FF4655"/>
+        <path d="M20 160C20 120 40 100 60 95C80 100 100 120 100 160Z" fill="#FF4655"/>
+        <rect x="10" y="90" width="20" height="60" rx="6" fill="#FF4655"/>
+        <rect x="90" y="90" width="20" height="60" rx="6" fill="#FF4655"/>
+      </svg>
+    </div>
+
+    <!-- ── CARD BODY ── -->
+    <div class="card-body">
+
+      <div class="card-tag">AGENT PROFILE &nbsp; // &nbsp; CLASSIFIED</div>
+
+      <!-- USERNAME — EDIT HERE -->
+      <div class="card-username" data-name="YOURNAME" id="cardName">
+        YOURNAME <span class="tag">#TAG</span>
+      </div>
+      <div class="card-tagline">RADIANT &nbsp;·&nbsp; DUELIST &nbsp;·&nbsp; VCT 2025</div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-cell">
+          <div class="stat-num gold" id="kdStat">—</div>
+          <div class="stat-label">K/D RATIO</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num" id="winStat">—</div>
+          <div class="stat-label">WIN RATE</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num teal" id="hsStat">—</div>
+          <div class="stat-label">HS %</div>
+        </div>
+      </div>
+
+      <!-- TRACKER LINK -->
+      <a href="https://tracker.gg/valorant/profile/riot/YOURNAME%23TAG/overview"
+         target="_blank" class="tracker-btn" id="trackerLink">
+        <div class="tracker-btn-left">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <circle cx="11" cy="11" r="10" stroke="#FF4655" stroke-width="1.4"/>
+            <path d="M6 11C6 8 8.5 5.5 11 5.5C13.5 5.5 16 8 16 11" stroke="#FF4655" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="11" cy="11" r="2.5" fill="#FF4655"/>
+          </svg>
+          <div>
+            <div class="tracker-btn-text">VIEW FULL PROFILE</div>
+            <span class="tracker-btn-sub">TRACKER.GG &nbsp;// &nbsp;LIVE STATS</span>
+          </div>
+        </div>
+        <span class="tracker-arrow">→</span>
+      </a>
+
+      <!-- COPY TAG BUTTON -->
+      <button class="close-btn" id="copyBtn" onclick="copyTag()" style="margin-bottom:10px;">
+        ◈ &nbsp; COPY RIOT ID &nbsp; ◈
+      </button>
+
+      <!-- CLOSE -->
+      <button class="close-btn" onclick="closeModal()">
+        ✕ &nbsp; CLOSE DOSSIER
+      </button>
+
+      <div class="card-serial" id="cardSerial">VAL-AGENT-00001</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- COPY TOAST -->
+<div class="toast" id="toast">RIOT ID COPIED TO CLIPBOARD</div>
+
+<script>
+/* ════════════════════════════════════════
+   ▌ EDIT YOUR INFO BELOW ▐
+════════════════════════════════════════ */
+const CONFIG = {
+  name:    'FrenchFries',       // ← Your Valorant username
+  tag:     '#998',           // ← Your hashtag e.g. #1234
+  rank:    'RADIANT',        // ← Your rank
+  role:    'Sentinel',        // ← Your role
+  kd:      '1.87',           // ← Your K/D ratio
+  winrate: '58%',            // ← Your win rate
+  hs:      '24%',            // ← Your headshot %
+  serial:  'VAL-AGENT-00001' // ← Any cool serial number
+};
+/* ════════════════════════════════════════ */
+
+// Apply config to DOM
+function applyConfig() {
+  const nameEl = document.getElementById('cardName');
+  nameEl.innerHTML = `${CONFIG.name} <span class="tag">${CONFIG.tag}</span>`;
+  nameEl.setAttribute('data-name', CONFIG.name);
+
+  document.getElementById('kdStat').textContent  = CONFIG.kd;
+  document.getElementById('winStat').textContent = CONFIG.winrate;
+  document.getElementById('hsStat').textContent  = CONFIG.hs;
+  document.getElementById('cardSerial').textContent = CONFIG.serial;
+
+  // Update tracker link
+  const encoded = encodeURIComponent(CONFIG.name + CONFIG.tag);
+  document.getElementById('trackerLink').href =
+    `https://tracker.gg/valorant/profile/riot/${encoded}/overview`;
+
+  // Update copy button
+  document.getElementById('copyBtn').setAttribute(
+    'data-copy', CONFIG.name + CONFIG.tag
+  );
+
+  // Update tagline
+  document.querySelector('.card-tagline').textContent =
+    `${CONFIG.rank} · ${CONFIG.role} · VCT 2025`;
+
+  // Glitch name on open
+  glitchText(nameEl, CONFIG.name);
+}
+
+// Glitch animation
+function glitchText(el, finalName) {
+  const chars = 'XKQZWM#@&%!';
+  const tag = el.querySelector('.tag');
+  const tagHTML = tag ? tag.outerHTML : '';
+  let iter = 0;
+  const iv = setInterval(() => {
+    const scrambled = finalName.split('').map((c, i) =>
+      i < iter ? c : (c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)])
+    ).join('');
+    el.innerHTML = scrambled + ' ' + tagHTML;
+    if (iter >= finalName.length) { clearInterval(iv); el.innerHTML = finalName + ' ' + tagHTML; }
+    iter += 1.5;
+  }, 35);
+}
+
+// Stats count-up
+function animateStats() {
+  const animNum = (el, target, suffix='') => {
+    const isFloat = target.includes('.');
+    const num = parseFloat(target);
+    let current = 0; const steps = 30;
+    const increment = num / steps;
+    const iv = setInterval(() => {
+      current += increment;
+      if (current >= num) { current = num; clearInterval(iv); }
+      el.textContent = (isFloat ? current.toFixed(2) : Math.round(current)) + suffix;
+    }, 35);
+  };
+  setTimeout(() => {
+    const kd = CONFIG.kd;
+    const wr = CONFIG.winrate.replace('%','');
+    const hs = CONFIG.hs.replace('%','');
+    animNum(document.getElementById('kdStat'),  kd,  '');
+    animNum(document.getElementById('winStat'), wr,  '%');
+    animNum(document.getElementById('hsStat'),  hs,  '%');
+  }, 300);
+}
+
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+  applyConfig();
+  animateStats();
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+function copyTag() {
+  const text = CONFIG.name + CONFIG.tag;
+  navigator.clipboard.writeText(text).catch(() => {});
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+/* ── CUSTOM CURSOR ── */
+const reticle = document.getElementById('reticle');
+document.addEventListener('mousemove', e => {
+  reticle.style.left = e.clientX + 'px';
+  reticle.style.top  = e.clientY + 'px';
+});
+
+/* ── PARTICLES ── */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let W, H, pts = [];
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); initPts(); });
+
+function initPts() {
+  pts = Array.from({length: 60}, () => ({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: Math.random() * 1.4 + 0.3,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    op: Math.random() * 0.4 + 0.1
+  }));
+}
+initPts();
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  pts.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,70,85,${p.op})`;
+    ctx.fill();
+  });
+  // draw connecting lines
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i+1; j < pts.length; j++) {
+      const dx = pts[i].x - pts[j].x;
+      const dy = pts[i].y - pts[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x, pts[i].y);
+        ctx.lineTo(pts[j].x, pts[j].y);
+        ctx.strokeStyle = `rgba(255,70,85,${0.08 * (1 - dist/100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+
+// ESC key to close
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

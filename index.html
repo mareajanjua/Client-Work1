@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOCIAL LINKS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --val-red: #FF4655;
+    --val-red-dark: #c03040;
+    --val-red-glow: rgba(255,70,85,0.3);
+    --val-white: #ECE8E1;
+    --val-dark: #0F1923;
+    --val-darker: #080D12;
+    --val-mid: #1F2D3D;
+    --val-accent: #BD3944;
+    --val-teal: #00E4C8;
+    --val-gold: #F0B232;
+    --val-gray: #768079;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; min-height: 100vh;
+    background: var(--val-darker);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── VIDEO BACKGROUND ── */
+  .bg-video-wrap {
+    position: fixed; inset: 0; z-index: 0;
+    overflow: hidden;
+  }
+  .bg-video-wrap video {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 100%; height: 100%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    pointer-events: none;
+    opacity: 0.18;
+  }
+  .bg-overlay {
+    position: fixed; inset: 0; z-index: 1;
+    background:
+      linear-gradient(180deg, rgba(8,13,18,0.85) 0%, rgba(8,13,18,0.4) 40%, rgba(8,13,18,0.7) 80%, rgba(8,13,18,0.97) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,70,85,0.015) 2px, rgba(255,70,85,0.015) 4px);
+  }
+
+  /* ── SCANLINE EFFECT ── */
+  .scanlines {
+    position: fixed; inset: 0; z-index: 2;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* ── CORNER DECORATIONS ── */
+  .corner { position: fixed; z-index: 3; width: 80px; height: 80px; }
+  .corner::before, .corner::after {
+    content: '';
+    position: absolute;
+    background: var(--val-red);
+  }
+  .corner::before { width: 2px; height: 40px; }
+  .corner::after  { width: 40px; height: 2px; }
+  .corner-tl { top: 20px; left: 20px; }
+  .corner-tl::before { top: 0; left: 0; }
+  .corner-tl::after  { top: 0; left: 0; }
+  .corner-tr { top: 20px; right: 20px; transform: scaleX(-1); }
+  .corner-tr::before { top: 0; left: 0; }
+  .corner-tr::after  { top: 0; left: 0; }
+  .corner-bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+  .corner-bl::before { top: 0; left: 0; }
+  .corner-bl::after  { top: 0; left: 0; }
+  .corner-br { bottom: 20px; right: 20px; transform: scale(-1); }
+  .corner-br::before { top: 0; left: 0; }
+  .corner-br::after  { top: 0; left: 0; }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    position: relative; z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+  }
+
+  /* ── TOP NAV BAR ── */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px;
+    background: rgba(8,13,18,0.8);
+    border-bottom: 1px solid rgba(255,70,85,0.2);
+    backdrop-filter: blur(10px);
+  }
+  .top-bar-logo {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 4px;
+    color: var(--val-red);
+    text-transform: uppercase;
+  }
+  .top-bar-status {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--val-teal); letter-spacing: 2px;
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--val-teal);
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ── HERO SECTION ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: fadeDown 0.8s ease both;
+  }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
+
+  .agent-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(255,70,85,0.08);
+    border: 1px solid rgba(255,70,85,0.25);
+    padding: 6px 18px 6px 10px;
+    margin-bottom: 28px;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  }
+  .agent-badge svg { width: 16px; height: 16px; }
+  .agent-badge span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--val-red); letter-spacing: 3px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--val-gray);
+    letter-spacing: 5px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .hero-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(52px, 10vw, 96px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--val-white);
+    text-transform: uppercase;
+    position: relative;
+    white-space: nowrap;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .hero-name .accent { color: var(--val-red); }
+  .hero-name::after {
+    content: attr(data-text);
+    position: absolute; left: 2px; top: 2px;
+    color: var(--val-red);
+    opacity: 0.12;
+    z-index: -1;
+  }
+
+  .hero-tagline {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(14px, 2.5vw, 18px);
+    font-weight: 400;
+    color: var(--val-gray);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 56px;
+  }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,70,85,0.4), transparent); }
+  .divider-diamond {
+    width: 8px; height: 8px;
+    background: var(--val-red);
+    transform: rotate(45deg);
+  }
+  .divider-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--val-red); letter-spacing: 4px;
+  }
+
+  /* ── SOCIAL GRID ── */
+  .socials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  /* ── SOCIAL CARD ── */
+  .social-card {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 20px 28px;
+    text-decoration: none;
+    background: rgba(15,25,35,0.7);
+    border: 1px solid rgba(255,70,85,0.12);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    cursor: crosshair;
+    transition: transform 0.25s, border-color 0.25s;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+  .social-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--card-glow, rgba(255,70,85,0.06));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .social-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 16px; height: 16px;
+    background: var(--card-accent, var(--val-red));
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+  .social-card:hover { transform: translateY(-4px) scale(1.02); border-color: var(--card-accent, var(--val-red)); }
+  .social-card:hover::before { opacity: 1; }
+
+  /* card-specific corner bar */
+  .social-card .bar {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--card-accent, var(--val-red));
+  }
+
+  /* CARD NUMBER */
+  .card-num {
+    position: absolute; top: 10px; left: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--val-gray); letter-spacing: 2px;
+  }
+
+  /* ICON WRAPPER */
+  .icon-wrap {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(255,70,85,0.08);
+    border: 1.5px solid rgba(255,70,85,0.2);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    position: relative;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .social-card:hover .icon-wrap {
+    border-color: var(--card-accent, var(--val-red));
+    background: rgba(255,70,85,0.14);
+  }
+  .icon-wrap svg { width: 28px; height: 28px; }
+
+  /* CARD LABEL */
+  .card-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px; font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--val-white);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--val-gray);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  /* ARROW */
+  .card-arrow {
+    position: absolute; bottom: 14px; right: 22px;
+    font-size: 14px; color: var(--card-accent, var(--val-red));
+    opacity: 0; transform: translateX(-4px);
+    transition: opacity 0.2s, transform 0.2s;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .social-card:hover .card-arrow { opacity: 1; transform: translateX(0); }
+
+  /* ── AGENT CODENAME BADGE below grid ── */
+  .footer-bar {
+    margin-top: 64px;
+    display: flex; align-items: center; gap: 24px;
+    opacity: 0.5;
+    animation: fadeUp 1s 0.6s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:0.5;transform:translateY(0)} }
+  .footer-bar span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--val-gray); letter-spacing: 3px;
+  }
+  .footer-bar .dot { color: var(--val-red); }
+
+  /* ── GLITCH TEXT KEYFRAMES ── */
+  @keyframes glitch {
+    0%,90%,100% { transform: none; }
+    91% { transform: skewX(-2deg) translateX(2px); color: var(--val-teal); }
+    93% { transform: skewX(2deg) translateX(-2px); color: var(--val-red); }
+    95% { transform: none; }
+  }
+  .hero-name { animation: glitch 5s infinite; }
+
+  /* ── CARD ENTRY ANIMATION ── */
+  .social-card {
+    animation: cardIn 0.6s ease both;
+  }
+  .social-card:nth-child(1) { animation-delay: 0.15s; }
+  .social-card:nth-child(2) { animation-delay: 0.25s; }
+  .social-card:nth-child(3) { animation-delay: 0.35s; }
+  .social-card:nth-child(4) { animation-delay: 0.45s; }
+  .social-card:nth-child(5) { animation-delay: 0.55s; }
+  .social-card:nth-child(6) { animation-delay: 0.65s; }
+  @keyframes cardIn {
+    from { opacity:0; transform: translateY(30px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── TARGETING RETICLE (follows cursor) ── */
+  .reticle {
+    position: fixed; z-index: 9999;
+    pointer-events: none;
+    width: 32px; height: 32px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .socials-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hero-name { font-size: 52px; }
+    .top-bar { padding: 12px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND VIDEO -->
+<div class="bg-video-wrap">
+  <video autoplay muted loop playsinline>
+    <source src="bg.mp4.mp4" type="video/mp4">
+  </video>
+</div>
+<div class="bg-overlay"></div>
+<div class="scanlines"></div>
+
+<!-- CORNER DECORATIONS -->
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- CUSTOM CURSOR RETICLE -->
+<svg class="reticle" id="reticle" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="16" cy="16" r="7" stroke="#FF4655" stroke-width="1.2" opacity="0.7"/>
+  <line x1="16" y1="0" x2="16" y2="9" stroke="#FF4655" stroke-width="1.2" opacity="0.7"/>
+  <line x1="16" y1="23" x2="16" y2="32" stroke="#FF4655" stroke-width="1.2" opacity="0.7"/>
+  <line x1="0" y1="16" x2="9" y2="16" stroke="#FF4655" stroke-width="1.2" opacity="0.7"/>
+  <line x1="23" y1="16" x2="32" y2="16" stroke="#FF4655" stroke-width="1.2" opacity="0.7"/>
+  <circle cx="16" cy="16" r="1.5" fill="#FF4655"/>
+</svg>
+
+<!-- TOP BAR -->
+<nav class="top-bar">
+  <div class="top-bar-logo">
+    <span style="color:var(--val-white)">SAMI KHAN</span>&nbsp;//&nbsp;PROFILE
+  </div>
+  <div class="top-bar-status">
+    <div class="status-dot"></div>
+    ONLINE &nbsp;|&nbsp; ALL CHANNELS ACTIVE
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="agent-badge">
+      <!-- Valorant-style diamond icon -->
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1L15 8L8 15L1 8Z" fill="#FF4655" opacity="0.8"/>
+        <path d="M8 4L12 8L8 12L4 8Z" fill="#FF4655"/>
+      </svg>
+      <span>AGENT // IDENTIFICATION</span>
+    </div>
+
+    <p class="hero-eyebrow">PLAYER CARD</p>
+    <h1 class="hero-name" data-text="SAMI KHAN">SAMI KHAN</h1>
+    <p class="hero-tagline">FrenchFries#998</p>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-diamond"></div>
+      <span class="divider-text">SOCIAL CHANNELS</span>
+      <div class="divider-diamond"></div>
+      <div class="divider-line"></div>
+    </div>
+  </div>
+
+  <!-- SOCIAL CARDS GRID -->
+  <div class="socials-grid">
+
+    <!-- INSTAGRAM -->
+    <a href="https://www.instagram.com/thesamikh?igsh=MWJ5Z2Q2ZXV1eHhqbg==" target="_blank" class="social-card"
+       style="--card-accent:#E1306C; --card-glow:rgba(225,48,108,0.1)">
+      <div class="bar"></div>
+      <span class="card-num">01</span>
+      <div class="icon-wrap" style="border-color:rgba(225,48,108,0.3); background:rgba(225,48,108,0.08)">
+        <!-- Custom Valorant-styled Instagram icon -->
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="22" height="22" rx="6" stroke="#E1306C" stroke-width="1.8"/>
+          <circle cx="14" cy="14" r="5" stroke="#E1306C" stroke-width="1.8"/>
+          <circle cx="20.5" cy="7.5" r="1.2" fill="#E1306C"/>
+          <path d="M3 9H6M22 9H25" stroke="#E1306C" stroke-width="1" opacity="0.4"/>
+          <path d="M3 19H6M22 19H25" stroke="#E1306C" stroke-width="1" opacity="0.4"/>
+          <path d="M9 3V6M19 3V6" stroke="#E1306C" stroke-width="1" opacity="0.4"/>
+          <path d="M9 22V25M19 22V25" stroke="#E1306C" stroke-width="1" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="card-label">Instagram</div>
+      <div class="card-sub">FOLLOW &nbsp;// &nbsp;INTEL</div>
+      <span class="card-arrow">→</span>
+    </a>
+
+    <!-- SNAPCHAT -->
+    <a href="https://www.snapchat.com/@hipotatochips?sender_web_id=2a6f6f7f-4e6e-4d30-940d-e34994569688&device_type=ios&is_copy_url=true" target="_blank" class="social-card"
+       style="--card-accent:#FFFC00; --card-glow:rgba(255,252,0,0.07)">
+      <div class="bar"></div>
+      <span class="card-num">02</span>
+      <div class="icon-wrap" style="border-color:rgba(255,252,0,0.3); background:rgba(255,252,0,0.06)">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 3C10.5 3 8 5.5 8 9V13C7 13.5 5 14 5 14L5.5 15.5C5.5 15.5 7 15.2 8 14.8C7.5 16.5 6 17 4 18C5 19 8 19.5 9 19C9.5 20.5 11 21 14 21C17 21 18.5 20.5 19 19C20 19.5 23 19 24 18C22 17 20.5 16.5 20 14.8C21 15.2 22.5 15.5 22.5 15.5L23 14C23 14 21 13.5 20 13V9C20 5.5 17.5 3 14 3Z" stroke="#FFFC00" stroke-width="1.5" fill="none"/>
+          <path d="M11 10H17" stroke="#FFFC00" stroke-width="1" opacity="0.5"/>
+          <circle cx="14" cy="14" r="1" fill="#FFFC00" opacity="0.6"/>
+        </svg>
+      </div>
+      <div class="card-label" style="color:#FFFC00">Snapchat</div>
+      <div class="card-sub">ADD &nbsp;// &nbsp;COMMS</div>
+      <span class="card-arrow" style="color:#FFFC00">→</span>
+    </a>
+
+    <!-- STEAM -->
+    <a href="https://steamcommunity.com/id/thesamikh/" target="_blank" class="social-card"
+       style="--card-accent:#66C0F4; --card-glow:rgba(102,192,244,0.08)">
+      <div class="bar"></div>
+      <span class="card-num">03</span>
+      <div class="icon-wrap" style="border-color:rgba(102,192,244,0.3); background:rgba(102,192,244,0.07)">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="10" r="7" stroke="#66C0F4" stroke-width="1.6"/>
+          <circle cx="14" cy="10" r="3.5" stroke="#66C0F4" stroke-width="1.2" opacity="0.6"/>
+          <path d="M7 17L11 20L9 25" stroke="#66C0F4" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M14 20L16 24" stroke="#66C0F4" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+          <path d="M3 10H7M21 10H25" stroke="#66C0F4" stroke-width="1" opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="card-label" style="color:#66C0F4">Steam</div>
+      <div class="card-sub">ADD &nbsp;// &nbsp;GAMES</div>
+      <span class="card-arrow" style="color:#66C0F4">â†’</span>
+    </a>
+
+    <!-- SPOTIFY -->
+    <a href="https://open.spotify.com/user/31skpiioxkpovxbtiurxec73item?si=z7nN9hFpRX6seboYHmqJlw" target="_blank" class="social-card"
+       style="--card-accent:#1DB954; --card-glow:rgba(29,185,84,0.08)">
+      <div class="bar"></div>
+      <span class="card-num">04</span>
+      <div class="icon-wrap" style="border-color:rgba(29,185,84,0.3); background:rgba(29,185,84,0.07)">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="11" stroke="#1DB954" stroke-width="1.6"/>
+          <path d="M7 10.5C10.5 9 15 8.8 20 11" stroke="#1DB954" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8 14C11 12.8 15.5 12.6 19 14.5" stroke="#1DB954" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M9.5 17.5C12 16.5 15.5 16.4 18 17.8" stroke="#1DB954" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="card-label" style="color:#1DB954">Spotify</div>
+      <div class="card-sub">LISTEN &nbsp;// &nbsp;AUDIO</div>
+      <span class="card-arrow" style="color:#1DB954">→</span>
+    </a>
+
+    <!-- DISCORD -->
+    <a href="https://discord.gg/8ZqHnB2G" target="_blank" class="social-card"
+       style="--card-accent:#5865F2; --card-glow:rgba(88,101,242,0.1)">
+      <div class="bar"></div>
+      <span class="card-num">05</span>
+      <div class="icon-wrap" style="border-color:rgba(88,101,242,0.35); background:rgba(88,101,242,0.08)">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 5C19 5 21.5 8 22 12C22 12 20 11 18 11M9 5C9 5 6.5 8 6 12C6 12 8 11 10 11" stroke="#5865F2" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M6 12C6 12 5 20 9 22C9 22 10 20 10 19C10 19 13 20 14 20C15 20 18 19 18 19C18 20 19 22 19 22C23 20 22 12 22 12" stroke="#5865F2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="11" cy="16" r="2" stroke="#5865F2" stroke-width="1.4"/>
+          <circle cx="17" cy="16" r="2" stroke="#5865F2" stroke-width="1.4"/>
+        </svg>
+      </div>
+      <div class="card-label" style="color:#5865F2">Discord</div>
+      <div class="card-sub">JOIN &nbsp;// &nbsp;SQUAD</div>
+      <span class="card-arrow" style="color:#5865F2">→</span>
+    </a>
+
+    <!-- VALORANT TAG / EXTRA CARD -->
+    <a href="valorantcard.html" class="social-card"
+       style="--card-accent:#FF4655; --card-glow:rgba(255,70,85,0.1)">
+      <div class="bar"></div>
+      <span class="card-num">06</span>
+      <div class="icon-wrap" style="border-color:rgba(255,70,85,0.35); background:rgba(255,70,85,0.09)">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 8L14 4L24 8V16C24 20 19 24 14 25C9 24 4 20 4 16V8Z" stroke="#FF4655" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M10 14L12.5 17L18 11" stroke="#FF4655" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="card-label">Valorant</div>
+      <div class="card-sub">TAG &nbsp;// &nbsp;CHALLENGE</div>
+      <span class="card-arrow">→</span>
+    </a>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-bar">
+    <span>SPIKE READY</span>
+    <span class="dot">◆</span>
+    <span>NIGHT MARKET</span>
+    <span class="dot">◆</span>
+    <span>CLUTCH MODE</span>
+  </div>
+
+</main>
+
+<script>
+  // Custom cursor reticle
+  const reticle = document.getElementById('reticle');
+  document.addEventListener('mousemove', e => {
+    reticle.style.left = e.clientX + 'px';
+    reticle.style.top  = e.clientY + 'px';
+  });
+
+  // Reticle scales on hover over cards
+  document.querySelectorAll('.social-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      reticle.style.transform = 'translate(-50%,-50%) scale(1.5)';
+      reticle.style.opacity = '0.6';
+    });
+    card.addEventListener('mouseleave', () => {
+      reticle.style.transform = 'translate(-50%,-50%) scale(1)';
+      reticle.style.opacity = '1';
+    });
+  });
+
+  // Typing glitch on load for agent name
+  const name = document.querySelector('.hero-name');
+  const original = name.innerHTML;
+  const chars = 'XQKZMWV0193@#';
+  let iter = 0;
+  const glitchInterval = setInterval(() => {
+    name.innerHTML = original.split('').map((c, i) => {
+      if (i < iter) return c === '<' ? original[i] : c;
+      if (c === ' ' || c === '<') return c;
+      return chars[Math.floor(Math.random() * chars.length)];
+    }).join('');
+    if (iter >= original.length) {
+      clearInterval(glitchInterval);
+      name.innerHTML = original;
+    }
+    iter += 2;
+  }, 40);
+</script>
+</body>
+</html>
+
