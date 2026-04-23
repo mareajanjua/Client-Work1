@@ -391,6 +391,9 @@
     <source src="bg.mp4.mp4" type="video/mp4">
   </video>
 </div>
+<audio id="bg-audio" loop preload="auto">
+  <source src="Valorant%20Match%20Loading%20Screen%20-%20Official%20Theme%20%20Episode%202.mp3" type="audio/mpeg">
+</audio>
 <div class="bg-overlay"></div>
 <div class="scanlines"></div>
 
@@ -575,6 +578,26 @@
 </main>
 
 <script>
+  // Background audio fallback for mobile and desktop autoplay restrictions
+  const bgAudio = document.getElementById('bg-audio');
+  if (bgAudio) {
+    bgAudio.volume = 0.28;
+
+    const tryPlayAudio = () => {
+      const playPromise = bgAudio.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {});
+      }
+    };
+
+    window.addEventListener('load', tryPlayAudio, { once: true });
+    window.addEventListener('click', tryPlayAudio, { once: true });
+    window.addEventListener('touchstart', tryPlayAudio, { once: true, passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) tryPlayAudio();
+    });
+  }
+
   // Background video autoplay fallback for mobile browsers
   const bgVideo = document.querySelector('.bg-video-wrap video');
   if (bgVideo) {
