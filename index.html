@@ -590,55 +590,13 @@
       }
     };
 
-    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-    if (AudioContextCtor && !bgAudio._audioGraphReady) {
-      const audioCtx = new AudioContextCtor();
-      const source = audioCtx.createMediaElementSource(bgAudio);
-      const lowShelf = audioCtx.createBiquadFilter();
-      lowShelf.type = 'lowshelf';
-      lowShelf.frequency.value = 180;
-      lowShelf.gain.value = 1.5;
+    bgAudio.muted = false;
+    bgAudio.removeAttribute('muted');
 
-      const vocalDip = audioCtx.createBiquadFilter();
-      vocalDip.type = 'peaking';
-      vocalDip.frequency.value = 1500;
-      vocalDip.Q.value = 1.1;
-      vocalDip.gain.value = -7;
-
-      const presenceDip = audioCtx.createBiquadFilter();
-      presenceDip.type = 'peaking';
-      presenceDip.frequency.value = 3200;
-      presenceDip.Q.value = 0.9;
-      presenceDip.gain.value = -4;
-
-      source.connect(lowShelf);
-      lowShelf.connect(vocalDip);
-      vocalDip.connect(presenceDip);
-      presenceDip.connect(audioCtx.destination);
-      bgAudio._audioGraphReady = true;
-
-      const resumeAudioContext = () => {
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-      };
-
-      window.addEventListener('load', () => {
-        resumeAudioContext();
-        tryPlayAudio();
-      }, { once: true });
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          resumeAudioContext();
-          tryPlayAudio();
-        }
-      });
-    } else {
-      window.addEventListener('load', tryPlayAudio, { once: true });
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) tryPlayAudio();
-      });
-    }
+    window.addEventListener('load', tryPlayAudio, { once: true });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) tryPlayAudio();
+    });
   }
 
   // Background video autoplay fallback for mobile browsers
