@@ -581,7 +581,7 @@
   // Background audio best-effort autoplay with a lighter vocal presence.
   const bgAudio = document.getElementById('bg-audio');
   if (bgAudio) {
-    bgAudio.volume = 0.50;
+    bgAudio.volume = 0.05;
 
     const tryPlayAudio = () => {
       const playPromise = bgAudio.play();
@@ -596,6 +596,8 @@
     window.addEventListener('load', tryPlayAudio, { once: true });
     window.addEventListener('DOMContentLoaded', tryPlayAudio, { once: true });
     window.addEventListener('canplay', tryPlayAudio, { once: true });
+    window.addEventListener('pointerdown', tryPlayAudio, { once: true, passive: true });
+    window.addEventListener('touchstart', tryPlayAudio, { once: true, passive: true });
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) tryPlayAudio();
     });
@@ -605,6 +607,7 @@
   const bgVideo = document.querySelector('.bg-video-wrap video');
   if (bgVideo) {
     bgVideo.muted = true;
+    bgVideo.defaultMuted = true;
     bgVideo.playsInline = true;
     bgVideo.setAttribute('muted', '');
     bgVideo.setAttribute('playsinline', '');
