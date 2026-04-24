@@ -387,8 +387,8 @@
 <!-- BACKGROUND VIDEO -->
 <div class="bg-video-wrap">
   <video autoplay muted loop playsinline webkit-playsinline preload="auto">
-    <source src="bg.mp4%20(1).mp4" type="video/mp4" media="(max-width: 600px)">
-    <source src="bg.mp4.mp4" type="video/mp4">
+    <source id="mobile-video-src" src="bg.mp4%20(1).mp4" type="video/mp4">
+    <source id="desktop-video-src" src="bg.mp4.mp4" type="video/mp4">
   </video>
 </div>
 <audio id="bg-audio" loop preload="auto" autoplay>
@@ -602,6 +602,15 @@
   // Background video autoplay fallback for mobile browsers
   const bgVideo = document.querySelector('.bg-video-wrap video');
   if (bgVideo) {
+    const mobileSrc = document.getElementById('mobile-video-src');
+    const desktopSrc = document.getElementById('desktop-video-src');
+    const useMobileVideo = window.matchMedia('(max-width: 600px)').matches;
+
+    if (mobileSrc && desktopSrc) {
+      bgVideo.src = useMobileVideo ? mobileSrc.getAttribute('src') : desktopSrc.getAttribute('src');
+      bgVideo.load();
+    }
+
     bgVideo.muted = true;
     bgVideo.playsInline = true;
     bgVideo.setAttribute('muted', '');
