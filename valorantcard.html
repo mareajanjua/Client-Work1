@@ -648,7 +648,7 @@ if (bgVideo) {
 const bgAudio = document.getElementById('bg-audio');
 if (bgAudio) {
   const isMobile = window.matchMedia('(max-width: 600px)').matches;
-  bgAudio.volume = isMobile ? 0.03 : 0.05;
+  bgAudio.volume = isMobile ? 0.02 : 0.04;
   bgAudio.muted = false;
   bgAudio.removeAttribute('muted');
 
@@ -658,6 +658,30 @@ if (bgAudio) {
       playPromise.catch(() => {});
     }
   };
+
+  if (isMobile) {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextCtor && !bgAudio._mobileToneReduced) {
+      const audioCtx = new AudioContextCtor();
+      const source = audioCtx.createMediaElementSource(bgAudio);
+      const vocalCut = audioCtx.createBiquadFilter();
+      vocalCut.type = 'peaking';
+      vocalCut.frequency.value = 1900;
+      vocalCut.Q.value = 1.0;
+      vocalCut.gain.value = -6;
+      const presenceCut = audioCtx.createBiquadFilter();
+      presenceCut.type = 'peaking';
+      presenceCut.frequency.value = 3300;
+      presenceCut.Q.value = 0.8;
+      presenceCut.gain.value = -3;
+      source.connect(vocalCut);
+      vocalCut.connect(presenceCut);
+      presenceCut.connect(audioCtx.destination);
+      bgAudio._mobileToneReduced = true;
+      window.addEventListener('pointerdown', () => audioCtx.resume().catch(() => {}), { once: true, passive: true });
+      window.addEventListener('touchstart', () => audioCtx.resume().catch(() => {}), { once: true, passive: true });
+    }
+  }
 
   window.addEventListener('load', tryPlayAudio, { once: true });
   document.addEventListener('visibilitychange', () => {

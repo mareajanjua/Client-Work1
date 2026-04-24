@@ -582,7 +582,7 @@
   const bgAudio = document.getElementById('bg-audio');
   if (bgAudio) {
     const isMobile = window.matchMedia('(max-width: 600px)').matches;
-    bgAudio.volume = isMobile ? 0.01 : 0.05;
+    bgAudio.volume = isMobile ? 0.03 : 0.04;
 
     const tryPlayAudio = () => {
       const playPromise = bgAudio.play();
@@ -590,30 +590,6 @@
         playPromise.catch(() => {});
       }
     };
-
-    if (isMobile && !bgAudio._mobileToneReduced) {
-      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextCtor) {
-        const audioCtx = new AudioContextCtor();
-        const source = audioCtx.createMediaElementSource(bgAudio);
-        const vocalCut = audioCtx.createBiquadFilter();
-        vocalCut.type = 'peaking';
-        vocalCut.frequency.value = 1800;
-        vocalCut.Q.value = 1.1;
-        vocalCut.gain.value = -10;
-        const presenceCut = audioCtx.createBiquadFilter();
-        presenceCut.type = 'peaking';
-        presenceCut.frequency.value = 3400;
-        presenceCut.Q.value = 0.9;
-        presenceCut.gain.value = -6;
-        source.connect(vocalCut);
-        vocalCut.connect(presenceCut);
-        presenceCut.connect(audioCtx.destination);
-        bgAudio._mobileToneReduced = true;
-        window.addEventListener('pointerdown', () => audioCtx.resume().catch(() => {}), { once: true, passive: true });
-        window.addEventListener('touchstart', () => audioCtx.resume().catch(() => {}), { once: true, passive: true });
-      }
-    }
 
     bgAudio.muted = false;
     bgAudio.removeAttribute('muted');
