@@ -581,7 +581,8 @@
   // Background audio best-effort autoplay with a lighter vocal presence.
   const bgAudio = document.getElementById('bg-audio');
   if (bgAudio) {
-    bgAudio.volume = 0.05;
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    bgAudio.volume = isMobile ? 0.03 : 0.05;
 
     const tryPlayAudio = () => {
       const playPromise = bgAudio.play();
@@ -606,6 +607,10 @@
   // Background video autoplay fallback for mobile browsers
   const bgVideo = document.querySelector('.bg-video-wrap video');
   if (bgVideo) {
+    const isMobile = window.matchMedia('(max-width: 600px)').matches;
+    bgVideo.src = isMobile ? 'bg.mp4%20(1).mp4' : 'bg.mp4.mp4';
+    bgVideo.load();
+
     bgVideo.muted = true;
     bgVideo.defaultMuted = true;
     bgVideo.playsInline = true;
